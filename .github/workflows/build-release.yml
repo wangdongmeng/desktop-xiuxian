@@ -28,6 +28,10 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Remove China mirror .npmrc on GitHub US runner
+        shell: bash
+        run: rm -f .npmrc
+
       - name: Install dependencies
         run: npm install
 
@@ -55,6 +59,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      - name: Remove China mirror .npmrc on GitHub US runner
+        run: rm -f .npmrc
 
       - name: Install dependencies
         run: npm install
