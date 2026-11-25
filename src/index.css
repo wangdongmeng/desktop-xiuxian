@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .app-drag {
+    -webkit-app-region: drag;
+  }
+  .app-no-drag {
+    -webkit-app-region: no-drag;
+  }
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  font-family: "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  color: #1c1b18;
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes swordHover {
+  0%, 100% { transform: translateY(0px) rotate(-14deg); }
+  50% { transform: translateY(-7px) rotate(-10deg); }
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes floatUpFade {
+  0% { opacity: 1; transform: translateY(0) scale(0.92); }
+  100% { opacity: 0; transform: translateY(-38px) scale(1.12); }
+}
+
+@keyframes swordSlashFly {
+  0% { opacity: 0; transform: translateX(0) scale(0.7); }
+  20% { opacity: 1; transform: translateX(35px) scale(1.05); }
+  85% { opacity: 1; transform: translateX(190px) scale(1); }
+  100% { opacity: 0; transform: translateX(220px) scale(0.8); }
+}
+
+@keyframes swordSlashFlyCompact {
+  0% { opacity: 0; transform: translateX(0) scale(0.7); }
+  20% { opacity: 1; transform: translateX(25px) scale(1); }
+  85% { opacity: 1; transform: translateX(115px) scale(1); }
+  100% { opacity: 0; transform: translateX(135px) scale(0.8); }
+}
+
+@keyframes hitShake {
+  0%, 100% { transform: translateX(0); filter: brightness(1); }
+  20% { transform: translateX(7px) rotate(3deg); filter: brightness(2.1); }
+  50% { transform: translateX(-5px) rotate(-2deg); filter: brightness(1.5); }
+  80% { transform: translateX(3px); filter: brightness(1.1); }
+}
+
+@keyframes lightningStrike {
+  0% { opacity: 0; transform: scaleY(0.2); }
+  18% { opacity: 1; transform: scaleY(1); }
+  45% { opacity: 0.9; }
+  100% { opacity: 0; transform: scaleY(1); }
+}
+
+@keyframes lootBeam {
+  0% { opacity: 0; transform: scaleY(0.1) scaleX(0.4); }
+  25% { opacity: 0.95; transform: scaleY(1) scaleX(1.1); }
+  75% { opacity: 0.85; transform: scaleY(1) scaleX(1); }
+  100% { opacity: 0; transform: scaleY(1.1) scaleX(0.2); }
+}
+
+@keyframes mistDrift {
+  0% { transform: translateX(-8%); }
+  50% { transform: translateX(8%); }
+  100% { transform: translateX(-8%); }
+}
+
+@keyframes screenFlash {
+  0% { opacity: 0; }
+  20% { opacity: 0.7; }
+  40% { opacity: 0.15; }
+  60% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+.animate-float-slow { animation: floatSlow 3.6s ease-in-out infinite; }
+.animate-sword { animation: swordHover 2.4s ease-in-out infinite; }
+.animate-spin-slow { animation: spinSlow 24s linear infinite; }
+.animate-float-up { animation: floatUpFade 0.85s ease-out forwards; }
+.animate-slash-fly { animation: swordSlashFly 0.36s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.animate-slash-fly-compact { animation: swordSlashFlyCompact 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.animate-hit-shake { animation: hitShake 0.32s ease-out; }
+.animate-lightning { animation: lightningStrike 0.42s ease-out forwards; transform-origin: top center; }
+.animate-loot-beam { animation: lootBeam 1.6s ease-out forwards; transform-origin: bottom center; }
+.animate-mist-drift { animation: mistDrift 14s ease-in-out infinite; }
+.animate-screen-flash { animation: screenFlash 0.9s ease-out forwards; }
+
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(120, 113, 102, 0.35); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(120, 113, 102, 0.55); }

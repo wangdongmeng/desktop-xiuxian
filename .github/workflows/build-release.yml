@@ -1,0 +1,72 @@
+name: Build Desktop Xiuxian (Windows & macOS)
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_mac:
+        description: 'Also build macOS .dmg installer'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Windows Installer (.exe NSIS + Portable)
+        run: npm run dist:win
+
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-xiuxian-windows
+          path: |
+            release/*.exe
+            release/win-unpacked/**
+          if-no-files-found: error
+
+  build-macos:
+    if: github.event_name == 'push' || inputs.build_mac == 'true'
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build macOS Installer (.dmg + .zip)
+        run: npm run dist:mac
+
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-xiuxian-macos
+          path: |
+            release/*.dmg
+            release/*.zip
+          if-no-files-found: error
