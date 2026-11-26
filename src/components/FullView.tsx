@@ -42,6 +42,7 @@ import {
   SLACKING_META,
   SLOT_LABEL,
 } from '../game/data';
+import { DEMO_MAX_STAGE_INDEX, isDemoLocked } from '../game/demo';
 import {
   locAffix,
   locArtifactName,
@@ -93,6 +94,8 @@ export const FullView: React.FC<Props> = ({ onSwitchToBar, onBackToTitle }) => {
   const [floats, setFloats] = useState<FloatingText[]>([]);
   const [showEncounter, setShowEncounter] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [activationInput, setActivationInput] = useState('');
+  const demoMode = isDemoLocked(state.fullUnlocked);
 
   useEffect(() => {
     tabBodyRef.current?.scrollTo({ top: 0 });
@@ -223,6 +226,17 @@ export const FullView: React.FC<Props> = ({ onSwitchToBar, onBackToTitle }) => {
               ))}
             </div>
 
+            {demoMode && (
+              <button
+                type="button"
+                onClick={state.openUnlockModal}
+                className="px-2.5 py-1.5 rounded-lg bg-gold-600 hover:bg-gold-500 text-paper-50 text-xs font-bold flex items-center gap-1 whitespace-nowrap shrink-0 shadow-sm transition"
+                title={locale === 'zh' ? '输入激活码保留存档解锁完整版' : 'Enter code to unlock Full Edition'}
+              >
+                <Unlock className="w-3.5 h-3.5 shrink-0" />
+                <span>{locale === 'zh' ? '试玩版·激活' : 'Demo · Unlock'}</span>
+              </button>
+            )}
             {state.pendingEncounter && (
               <button
                 type="button"
@@ -1310,6 +1324,60 @@ export const FullView: React.FC<Props> = ({ onSwitchToBar, onBackToTitle }) => {
         {toast && (
           <div className="pointer-events-none absolute top-16 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-ink-900/90 text-paper-50 text-xs font-medium shadow-lg z-50 whitespace-nowrap">
             {toast}
+          </div>
+        )}
+
+        {/* Free Trial -> Full Edition Activation Modal */}
+        {state.showUnlockModal && (
+          <div className="absolute inset-0 bg-ink-900/60 backdrop-blur-xs flex items-center justify-center z-50 p-4">
+            <div className="w-96 rounded-2xl bg-paper-50 border-2 border-gold-500 p-5 shadow-2xl text-center space-y-3">
+              <div className="inline-block px-3 py-0.5 rounded-full bg-gold-100 text-gold-600 text-xs font-serif font-bold border border-gold-500/50">
+                {locale === 'zh' ? '✦ 免费试玩版 · 仙缘解锁' : '✦ Free Trial · Unlock Full Edition'}
+              </div>
+              <h3 className="font-serif font-bold text-lg text-ink-900">
+                {locale === 'zh' ? '解锁《桌面修仙录》完整版' : 'Unlock Desktop Xiuxian Full'}
+              </h3>
+              <p className="text-xs text-ink-600 leading-relaxed">
+                {locale === 'zh'
+                  ? `试玩版可免费畅玩前 ${DEMO_MAX_STAGE_INDEX + 1} 关秘境妖王并修至炼气圆满。输入仙缘激活码即可保留全部修为存档，永久解锁：`
+                  : `Free Trial includes Stages 1–${DEMO_MAX_STAGE_INDEX + 1} & up to Qi Refining Peak. Enter your code to keep your save & unlock:`}
+              </p>
+              <div className="p-3 rounded-xl bg-paper-100/90 border border-paper-300/80 text-left text-[11px] text-ink-700 space-y-1">
+                <div>✓ {locale === 'zh' ? '全部 50 重秘境关卡与 3 大水墨镇守妖王' : 'All 50 Secret Grounds & Guardian Bosses'}</div>
+                <div>✓ {locale === 'zh' ? '筑基 → 金丹 → 元婴 → 九天仙帝 14 重完整境界' : 'All 14 Cultivation Realms up to Celestial Emperor'}</div>
+                <div>✓ {locale === 'zh' ? '无尽锁妖塔、元婴分身双线摸鱼与轮回五大结局' : 'Endless Demon Tower, Nascent Clones & 5 Endings'}</div>
+              </div>
+              <div className="flex gap-2 pt-1">
+                <input
+                  type="text"
+                  value={activationInput}
+                  onChange={(e) => setActivationInput(e.target.value)}
+                  placeholder={locale === 'zh' ? '输入仙缘激活码（如 XIUXIAN-...）' : 'Enter activation code...'}
+                  className="flex-1 px-3 py-2 rounded-xl bg-paper-100 border border-paper-300 text-xs text-ink-900 font-mono uppercase focus:outline-none focus:border-gold-600"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    const res = state.activateFullEdition(activationInput);
+                    showToast(res.msg);
+                    if (res.ok) setActivationInput('');
+                  }}
+                  className="px-3.5 py-2 rounded-xl bg-cinnabar-600 hover:bg-cinnabar-500 text-paper-50 text-xs font-serif font-bold whitespace-nowrap shadow-sm transition"
+                >
+                  {locale === 'zh' ? '立即激活' : 'Activate'}
+                </button>
+              </div>
+              <div className="flex items-center justify-between pt-1 text-[11px] text-ink-500">
+                <span>{locale === 'zh' ? '爱发电搜【桌面修仙录】获取激活码' : 'Support on Afdian / Steam for code'}</span>
+                <button
+                  type="button"
+                  onClick={state.closeUnlockModal}
+                  className="text-ink-700 hover:text-ink-900 font-medium underline"
+                >
+                  {locale === 'zh' ? '继续试玩' : 'Keep Playing'}
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

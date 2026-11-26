@@ -3,6 +3,14 @@ name: Build Desktop Xiuxian (Windows & macOS)
 on:
   workflow_dispatch:
     inputs:
+      build_type:
+        description: 'Build Full Paid Edition or Free Trial Demo Edition'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'demo'
       build_mac:
         description: 'Also build macOS .dmg installer'
         required: false
@@ -36,12 +44,14 @@ jobs:
         run: npm install
 
       - name: Build Windows Installer (.exe NSIS + Portable)
+        env:
+          VITE_DEMO_MODE: ${{ inputs.build_type == 'demo' && 'true' || 'false' }}
         run: npm run dist:win
 
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: desktop-xiuxian-windows
+          name: desktop-xiuxian-windows-${{ inputs.build_type || 'full' }}
           path: |
             release/*.exe
             release/win-unpacked/**

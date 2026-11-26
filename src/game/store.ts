@@ -24,6 +24,7 @@ import {
   SLACKING_META,
   STORY_CHAIN_EVENTS,
 } from './data';
+import { DEMO_MAX_REALM_ID, DEMO_MAX_STAGE_INDEX, isDemoLocked, verifyActivationCode } from './demo';
 import { detectDefaultLocale, Locale } from './i18n';
 import { soundEngine } from './sound';
 import { steamBridge } from './steam';
@@ -146,6 +147,8 @@ interface GameState {
   barOpacity: number;
   locale: Locale;
   onboardingStep: number;
+  fullUnlocked: boolean;
+  showUnlockModal: boolean;
 
   // Logs & meta
   logs: BattleLog[];
@@ -212,6 +215,9 @@ interface GameState {
   setAudioVolumes: (bgm: number, sfx: number) => void;
   setBarOpacity: (opacity: number) => void;
   setLocale: (locale: Locale) => void;
+  openUnlockModal: () => void;
+  closeUnlockModal: () => void;
+  activateFullEdition: (code: string) => { ok: boolean; msg: string };
   claimOnboardingStep: () => string;
   exportSaveString: () => string;
   importSaveString: (raw: string) => { ok: boolean; msg: string };
@@ -515,6 +521,8 @@ const INITIAL_STATE = {
   barOpacity: 0.95,
   locale: detectDefaultLocale(),
   onboardingStep: 0,
+  fullUnlocked: false,
+  showUnlockModal: false,
   logs: [makeLog('道友初入仙途，端坐青云山下吐纳灵气。', 'normal')],
   lastSavedAt: Date.now(),
   autoNextStage: false,
@@ -1219,6 +1227,10 @@ export const useGameStore = create<GameState>()(
         if (!realm || s.realmId >= REALMS.length - 1) {
           return { success: false, message: '道友已登临大乘飞升之境！' };
         }
+        if (isDemoLocked(s.fullUnlocked) && s.realmId >= DEMO_MAX_REALM_ID) {
+          set({ showUnlockModal: true });
+          return { success: false, message: '试玩版最高可修至【炼气圆满】，输入仙缘激活码即可保留存档解锁完整版！' };
+        }
         if (s.qi < realm.qiRequired) {
           return { success: false, message: '修为尚未圆满，请继续吐纳。' };
         }
@@ -1263,6 +1275,10 @@ export const useGameStore = create<GameState>()(
         if (idx === -1) return;
         const ground = SECRET_GROUNDS[idx];
         const s = get();
+        if (isDemoLocked(s.fullUnlocked) && idx > DEMO_MAX_STAGE_INDEX) {
+          set({ showUnlockModal: true });
+          return;
+        }
         if (!isGroundUnlocked(idx, s.realmId, s.bossesDefeated)) return;
         const firstM = ground.monsters[0];
         soundEngine.playClick();
@@ -1302,6 +1318,10 @@ export const useGameStore = create<GameState>()(
         }
         const nextIdx = SECRET_GROUNDS.findIndex((g) => g.id === report.nextGroundId);
         if (nextIdx === -1) return { ok: false, msg: '未找到下一关卡' };
+        if (isDemoLocked(s.fullUnlocked) && nextIdx > DEMO_MAX_STAGE_INDEX) {
+          set({ stageClearReport: null, showUnlockModal: true });
+          return { ok: false, msg: '试玩版前 3 关已全部通关！输入激活码解锁全部 50 关！' };
+        }
         const nextGround = SECRET_GROUNDS[nextIdx];
         if (!isGroundUnlocked(nextIdx, s.realmId, s.bossesDefeated)) {
           return { ok: false, msg: `需先突破至【${REALMS[nextGround.minRealmId].name}】方可踏入下一关！` };
@@ -2170,6 +2190,33 @@ export const useGameStore = create<GameState>()(
       setLocale: (locale) => {
         soundEngine.playClick();
         set({ locale });
+      },
+
+      openUnlockModal: () => {
+        soundEngine.playClick();
+        set({ showUnlockModal: true });
+      },
+
+      closeUnlockModal: () => {
+        soundEngine.playClick();
+        set({ showUnlockModal: false });
+      },
+
+      activateFullEdition: (code) => {
+        if (!verifyActivationCode(code)) {
+          return { ok: false, msg: '激活码无效，请核对后重试（支持区分大小写忽略）' };
+        }
+        soundEngine.playThunder(true);
+        const s = get();
+        set({
+          fullUnlocked: true,
+          showUnlockModal: false,
+          logs: [
+            makeLog('✦ 仙缘圆满！《桌面修仙录》完整版已永久激活，50 重秘境与 14 重境界全面开启！', 'breakthrough'),
+            ...s.logs,
+          ].slice(0, 40),
+        });
+        return { ok: true, msg: '✦ 完整版激活成功！已保留全部修为存档，尽情破境飞升吧！' };
       },
 
       claimOnboardingStep: () => {
